@@ -44,4 +44,17 @@ shop_data["projected_sales"] = calculate_sales(shop_data)
 # Create Bar Chart Data
 sales_comparison = pd.DataFrame({
     "Sales Type": ["Real Sales", "Projected Sales"],
-    "Sales Value": [macrotable_df[macrotable_df["shop_id
+    "Sales Value": [macrotable_df[macrotable_df["shop_id"] == shop_id]["real_sales"].values[0], shop_data["projected_sales"].values[0]],
+})
+
+# Plot Bar Chart
+fig = px.bar(sales_comparison, x="Sales Type", y="Sales Value", text="Sales Value", color="Sales Type",
+             color_discrete_map={"Real Sales": "lightblue", "Projected Sales": "blue"})
+
+st.title("📊 Projected vs. Real Sales")
+st.write(f"**Shop ID: {shop_id}**")
+st.plotly_chart(fig, use_container_width=True)
+
+# Display Data
+st.subheader("KPI Data Overview")
+st.write(shop_data)
