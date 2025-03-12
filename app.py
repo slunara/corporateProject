@@ -115,8 +115,6 @@ fig = px.bar(
 fig.update_traces(texttemplate='%{text:.2s}', textposition='outside')
 st.plotly_chart(fig)
 
-# **Ensure all necessary columns exist**
-st.write("Available Columns in shop_data:", shop_data.columns.tolist())
 
 # Display KPI Comparison
 st.markdown("## KPI Overview")
