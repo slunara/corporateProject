@@ -68,4 +68,77 @@ elif team_type == "Locals":
     shop_data["locals_new_effectiveness"] = st.sidebar.slider("Locals New Effectiveness", 0.01, 0.1, float(shop_data["locals_new_effectiveness"]))
     shop_data["prospect_generation"] = st.sidebar.slider("Prospect Generation", 0.01, 0.1, float(shop_data["prospect_generation"]))
     shop_data["prospect_effectiveness"] = st.sidebar.slider("Prospect Effectiveness", 0.1, 0.6, float(shop_data["prospect_effectiveness"]))
-    shop_data["local_come_back"] = st.sidebar.slider("Local Comeback", 0.1, 0.4, float(shop_data["local_
+    shop_data["local_come_back"] = st.sidebar.slider("Local Comeback", 0.1, 0.4, float(shop_data["local_come_back"]))
+
+elif team_type == "Tourist":
+    shop_data["tourist_new_effectiveness"] = st.sidebar.slider("Tourist New Effectiveness", 0.05, 0.15, float(shop_data["tourist_new_effectiveness"]))
+    shop_data["tourist_come_back"] = st.sidebar.slider("Tourist Comeback", 0.1, 0.4, float(shop_data["tourist_come_back"]))
+
+elif team_type == "Avg Ticket":
+    shop_data["avg_amt_ticket"] = st.sidebar.slider("Avg Ticket Amount", 20, 100, int(shop_data["avg_amt_ticket"]))
+    shop_data["avg_num_ticket_per_customer"] = st.sidebar.slider("Avg Tickets per Customer", 1.0, 3.0, float(shop_data["avg_num_ticket_per_customer"]))
+
+# Calculate Projected Sales
+shop_data["projected_sales"] = calculate_sales(shop_data)
+
+# Display KPI Comparison
+st.markdown("## KPI Overview")
+kpi_comparison = shop_data[["prev_year_sales", "ytd_sales", "budget_sales", "real_sales", "projected_sales"]]
+kpi_comparison = kpi_comparison.rename(columns={
+    "prev_year_sales": "Previous Year Sales",
+    "ytd_sales": "YTD Sales",
+    "budget_sales": "Budget Sales",
+    "real_sales": "Current Sales",
+    "projected_sales": "Projected Sales",
+})
+st.dataframe(kpi_comparison)
+
+# **Create Stacked Bar Chart for Sales Comparison**
+sales_comparison_df = pd.DataFrame({
+    "Category": ["Previous Year", "YTD", "Budget", "Current", "Projected"],
+    "Sales": [
+        shop_data["prev_year_sales"].values[0], shop_data["ytd_sales"].values[0],
+        shop_data["budget_sales"].values[0], shop_data["real_sales"].values[0],
+        shop_data["projected_sales"].values[0]
+    ],
+    "Type": ["Historical", "Historical", "Goal", "Actual", "Forecast"]
+})
+
+fig = px.bar(
+    sales_comparison_df,
+    x="Category",
+    y="Sales",
+    color="Type",
+    text="Sales",
+    title=f"Sales Overview for Shop {shop_id}",
+    labels={"Sales": "Sales Value", "Category": "Sales Type"},
+    barmode="group"
+)
+
+fig.update_traces(texttemplate='%{text:.2s}', textposition='outside')
+st.plotly_chart(fig)
+
+# **Additional Charts for KPI Breakdown**
+st.markdown("## KPI Breakdown by Category")
+
+category_df = pd.DataFrame({
+    "Category": ["New Locals", "Prospect Locals", "Existing Locals", "New Tourist", "Existing Tourist"],
+    "Metric Value": [
+        shop_data["locals_new_effectiveness"].values[0],
+        shop_data["prospect_generation"].values[0],
+        shop_data["local_come_back"].values[0],
+        shop_data["tourist_new_effectiveness"].values[0],
+        shop_data["tourist_come_back"].values[0]
+    ]
+})
+
+fig2 = px.bar(
+    category_df,
+    x="Category",
+    y="Metric Value",
+    title="Comparison of Different Customer Categories",
+    text="Metric Value"
+)
+
+fig2.update_traces(texttemplate='%{text:.2f}', textposition='outside')
+st.plotly_chart(fig2)
