@@ -32,7 +32,7 @@ def calculate_sales(df):
         (df["local_come_back"] * df["db_buyers_locals"]) +
         (df["total_traffic"] * df["tourist_new_effectiveness"]) +
         (df["tourist_come_back"] * df["db_buyers_tourist"])
-    ) * df["avg_amt_ticket"] * df["avg_num_ticket_per_customer"])
+    ) * df["avg_amt_ticket"] * df["avg_num_ticket_per_customer"]
 
 # Sidebar: Select Shop ID
 shop_id = st.sidebar.selectbox("Select Shop ID", macrotable_df["shop_id"])
