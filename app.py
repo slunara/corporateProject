@@ -44,24 +44,28 @@ team_type = st.sidebar.radio(
     ["Traffic", "Locals", "Tourist", "Avg Ticket"]
 )
 
+# **Define default multipliers to avoid errors**
+q1_multiplier, q2_multiplier, q3_multiplier, q4_multiplier = 0.25, 0.25, 0.25, 0.25
 
 # **Adjust KPIs Based on Selected Team Type**
 st.sidebar.markdown("### Adjust KPIs")
 if team_type == "Traffic":
     shop_data["total_traffic"] = st.sidebar.slider("Total Traffic", 5000, 30000, int(shop_data["total_traffic"]))
+    
     # **Quarterly Seasonality Adjustment**
     st.sidebar.markdown("### Adjust Quarterly Traffic Distribution")
     q1_multiplier = st.sidebar.slider("Q1 (%)", 0.0, 1.0, 0.25)
     q2_multiplier = st.sidebar.slider("Q2 (%)", 0.0, 1.0, 0.25)
     q3_multiplier = st.sidebar.slider("Q3 (%)", 0.0, 1.0, 0.25)
-    q4_multiplier = 1-q1_multiplier-q2_multiplier-q3_multiplier
+    q4_multiplier = 1 - q1_multiplier - q2_multiplier - q3_multiplier
 
-# Ensure the sum is 100%
+# **Ensure sum is exactly 100%**
 total_multiplier = q1_multiplier + q2_multiplier + q3_multiplier + q4_multiplier
 if total_multiplier != 1.0:
     st.sidebar.error("⚠️ The sum of Q1-Q4 must be exactly 100% (1.0)")
 
-    # Adjust Traffic using Quarterly Multiplier
+# **Apply Traffic Seasonality**
+if team_type == "Traffic":
     shop_data["adjusted_traffic"] = shop_data["total_traffic"] * total_multiplier
 
 elif team_type == "Locals":
@@ -81,36 +85,14 @@ elif team_type == "Avg Ticket":
 # Calculate Projected Sales
 shop_data["projected_sales"] = calculate_sales(shop_data)
 
-
-# Ensure real_sales and projected_sales are computed
-shop_data["real_sales"] = calculate_sales(shop_data)
-shop_data["projected_sales"] = calculate_sales(shop_data)
-
-
-# Handle missing columns
-columns_to_include = ["prev_year_sales", "ytd_sales", "budget_sales", "real_sales", "projected_sales"]
-kpi_comparison = shop_data[[col for col in columns_to_include if col in shop_data.columns]]
-
-# Rename for display
-kpi_comparison = kpi_comparison.rename(columns={
-    "prev_year_sales": "Previous Year Sales",
-    "ytd_sales": "YTD Sales",
-    "budget_sales": "Budget Sales",
-    "real_sales": "Current Sales",
-    "projected_sales": "Projected Sales",
-})
-
-st.dataframe(kpi_comparison)
-
-
-
 # **Create Stacked Bar Chart for Sales Comparison**
 sales_comparison_df = pd.DataFrame({
     "Category": ["Previous Year", "Budget", "YTD+Current", "Projected"],
     "Sales": [
         shop_data["prev_year_sales"].values[0],
-        shop_data["budget_sales"].values[0], shop_data["real_sales"].values[0]+shop_data["ytd_sales"].values[0],
-        shop_data["projected_sales"].values[0]+shop_data["ytd_sales"].values[0]
+        shop_data["budget_sales"].values[0], 
+        shop_data["real_sales"].values[0] + shop_data["ytd_sales"].values[0],
+        shop_data["projected_sales"].values[0] + shop_data["ytd_sales"].values[0]
     ],
     "Type": ["Historical", "Goal", "Actual", "Forecast"]
 })
@@ -128,30 +110,3 @@ fig = px.bar(
 
 fig.update_traces(texttemplate='%{text:.2s}', textposition='outside')
 st.plotly_chart(fig)
-
-# **Additional Charts for KPI Breakdown**
-st.markdown("## KPI Breakdown by Category")
-
-category_df = pd.DataFrame({
-    "Category": ["New Locals", "Prospect Locals", "Existing Locals", "New Tourist", "Existing Tourist"],
-    "Metric Value": [
-        shop_data["locals_new_effectiveness"].values[0],
-        shop_data["prospect_generation"].values[0],
-        shop_data["local_come_back"].values[0],
-        shop_data["tourist_new_effectiveness"].values[0],
-        shop_data["tourist_come_back"].values[0]
-    ]
-})
-
-fig2 = px.bar(
-    category_df,
-    x="Category",
-    y="Metric Value",
-    title="Comparison of Different Customer Categories",
-    text="Metric Value"
-)
-
-fig2.update_traces(texttemplate='%{text:.2f}', textposition='outside')
-st.plotly_chart(fig2)
-
-
