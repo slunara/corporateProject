@@ -38,10 +38,11 @@ def calculate_sales(df):
 shop_id = st.sidebar.selectbox("Select Shop ID", macrotable_df["shop_id"])
 shop_data = macrotable_df[macrotable_df["shop_id"] == shop_id].copy()
 
-st.sidebar.markdown("### Adjust KPIs")
-
-# Sidebar: Adjust KPI Variables
-shop_data["total_traffic"] = st.sidebar.slider("Total Traffic", 5000, 30000, int(shop_data["total_traffic"]))
+st.sidebar.markdown("### What is your target category?")
+team_type = st.sidebar.radio(
+    "Select Team Type",
+    ["Traffic", "Locals", "Tourist", "Avg Ticket"]
+)
 
 # **Quarterly Seasonality Adjustment**
 st.sidebar.markdown("### Adjust Quarterly Traffic Distribution")
@@ -50,43 +51,21 @@ q2_multiplier = st.sidebar.slider("Q2 (%)", 0.0, 1.0, 0.25)
 q3_multiplier = st.sidebar.slider("Q3 (%)", 0.0, 1.0, 0.25)
 q4_multiplier = st.sidebar.slider("Q4 (%)", 0.0, 1.0, 0.25)
 
-# **Ensure the sum is 100%**
+# Ensure the sum is 100%
 total_multiplier = q1_multiplier + q2_multiplier + q3_multiplier + q4_multiplier
 if total_multiplier != 1.0:
     st.sidebar.error("⚠️ The sum of Q1-Q4 must be exactly 100% (1.0)")
 
 # Adjust Traffic using Quarterly Multiplier
-shop_data["adjusted_traffic"] = shop_data["total_traffic"] * (total_multiplier)
+shop_data["adjusted_traffic"] = shop_data["total_traffic"] * total_multiplier
 
-# Calculate Projected Sales with Adjusted Traffic
-shop_data["projected_sales"] = calculate_sales(shop_data)
+# **Adjust KPIs Based on Selected Team Type**
+st.sidebar.markdown("### Adjust KPIs")
+if team_type == "Traffic":
+    shop_data["total_traffic"] = st.sidebar.slider("Total Traffic", 5000, 30000, int(shop_data["total_traffic"]))
 
-# Display KPI Table
-st.markdown("## KPI Overview")
-kpi_comparison = shop_data[["prev_year_sales", "ytd_sales", "budget_sales", "projected_sales"]]
-kpi_comparison = kpi_comparison.rename(columns={
-    "prev_year_sales": "Previous Year Sales",
-    "ytd_sales": "YTD Sales",
-    "budget_sales": "Budget Sales",
-    "projected_sales": "Projected Sales",
-})
-st.dataframe(kpi_comparison)
-
-# Create Interactive Plotly Bar Chart
-sales_comparison_df = pd.DataFrame({
-    "Category": ["Previous Year", "YTD", "Budget", "Projected"],
-    "Sales": [
-        shop_data["prev_year_sales"].iloc[0],
-        shop_data["ytd_sales"].iloc[0],
-        shop_data["budget_sales"].iloc[0],
-        shop_data["projected_sales"].iloc[0],
-    ]
-})
-
-fig = px.bar(sales_comparison_df, x="Category", y="Sales", text="Sales", 
-             title=f"Sales Overview for Shop {shop_id}",
-             labels={"Sales": "Sales Value", "Category": "Sales Type"},
-             color="Category")
-
-fig.update_traces(texttemplate='%{text:.2s}', textposition='outside')
-st.plotly_chart(fig)
+elif team_type == "Locals":
+    shop_data["locals_new_effectiveness"] = st.sidebar.slider("Locals New Effectiveness", 0.01, 0.1, float(shop_data["locals_new_effectiveness"]))
+    shop_data["prospect_generation"] = st.sidebar.slider("Prospect Generation", 0.01, 0.1, float(shop_data["prospect_generation"]))
+    shop_data["prospect_effectiveness"] = st.sidebar.slider("Prospect Effectiveness", 0.1, 0.6, float(shop_data["prospect_effectiveness"]))
+    shop_data["local_come_back"] = st.sidebar.slider("Local Comeback", 0.1, 0.4, float(shop_data["local_
