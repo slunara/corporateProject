@@ -91,7 +91,7 @@ sales_comparison_df = pd.DataFrame({
         shop_data["real_sales"].values[0] + shop_data["ytd_sales"].values[0],  # Stack on YTD
         shop_data["projected_sales"].values[0] + shop_data["ytd_sales"].values[0],  # Stack on Current
     ],
-    "Stack": ["Reference", "Reference", "Base", "Adjustment", "Adjustment"]
+    "Stack": ["prev_year_sales", "budget_sales", "YTD+real_sales", "YTD+projected_sales"]
 })
 
 fig = px.bar(
