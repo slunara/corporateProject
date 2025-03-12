@@ -29,8 +29,8 @@ macrotable_df = pd.DataFrame({
 def calculate_sales(df):
     return (
         (df["total_traffic"] * df["locals_new_effectiveness"]) +
-        (df["total_traffic"] * df["prospect_generation"]) +
-        (df["db_buyers_locals"] * df["prospect_effectiveness"]) +
+        (df["total_traffic"] * df["prospect_generation"] +
+        df["db_buyers_locals"]) * df["prospect_effectiveness"] +
         (df["local_come_back"] * df["db_buyers_locals"]) +
         (df["total_traffic"] * df["tourist_new_effectiveness"]) +
         (df["tourist_come_back"] * df["db_buyers_tourist"])
@@ -39,22 +39,33 @@ def calculate_sales(df):
 # Add Real Sales column
 macrotable_df["real_sales"] = calculate_sales(macrotable_df)
 
+# Sidebar: User selects team role
+st.sidebar.markdown("## Select Team Role")
+team_role = st.sidebar.radio("Who are you?", ["Marketing", "Sales - Locals", "Sales - Tourists", "Sales - General"])
+
 # Sidebar: Select Shop ID
 shop_id = st.sidebar.selectbox("Select Shop ID", macrotable_df["shop_id"])
 shop_data = macrotable_df[macrotable_df["shop_id"] == shop_id].copy()
 
 st.sidebar.markdown("### Adjust KPIs")
 
-# Sidebar: Adjust KPI Variables
-shop_data["total_traffic"] = st.sidebar.slider("Total Traffic", 5000, 30000, int(shop_data["total_traffic"]))
-shop_data["locals_new_effectiveness"] = st.sidebar.slider("Locals New Effectiveness", 0.01, 0.1, float(shop_data["locals_new_effectiveness"]))
-shop_data["prospect_generation"] = st.sidebar.slider("Prospect Generation", 0.01, 0.1, float(shop_data["prospect_generation"]))
-shop_data["prospect_effectiveness"] = st.sidebar.slider("Prospect Effectiveness", 0.1, 0.6, float(shop_data["prospect_effectiveness"]))
-shop_data["local_come_back"] = st.sidebar.slider("Local Comeback", 0.1, 0.4, float(shop_data["local_come_back"]))
-shop_data["tourist_new_effectiveness"] = st.sidebar.slider("Tourist New Effectiveness", 0.05, 0.15, float(shop_data["tourist_new_effectiveness"]))
-shop_data["tourist_come_back"] = st.sidebar.slider("Tourist Comeback", 0.1, 0.4, float(shop_data["tourist_come_back"]))
-shop_data["avg_amt_ticket"] = st.sidebar.slider("Avg Ticket Amount", 20, 100, int(shop_data["avg_amt_ticket"]))
-shop_data["avg_num_ticket_per_customer"] = st.sidebar.slider("Avg Tickets per Customer", 1.0, 3.0, float(shop_data["avg_num_ticket_per_customer"]))
+# Display KPIs based on role
+if team_role == "Marketing":
+    shop_data["total_traffic"] = st.sidebar.slider("Total Traffic", 5000, 30000, int(shop_data["total_traffic"]))
+
+elif team_role == "Sales - Locals":
+    shop_data["locals_new_effectiveness"] = st.sidebar.slider("Locals New Effectiveness", 0.01, 0.1, float(shop_data["locals_new_effectiveness"]))
+    shop_data["prospect_generation"] = st.sidebar.slider("Prospect Generation", 0.01, 0.1, float(shop_data["prospect_generation"]))
+    shop_data["prospect_effectiveness"] = st.sidebar.slider("Prospect Effectiveness", 0.1, 0.6, float(shop_data["prospect_effectiveness"]))
+    shop_data["local_come_back"] = st.sidebar.slider("Local Comeback", 0.1, 0.4, float(shop_data["local_come_back"]))
+
+elif team_role == "Sales - Tourists":
+    shop_data["tourist_new_effectiveness"] = st.sidebar.slider("Tourist New Effectiveness", 0.05, 0.15, float(shop_data["tourist_new_effectiveness"]))
+    shop_data["tourist_come_back"] = st.sidebar.slider("Tourist Comeback", 0.1, 0.4, float(shop_data["tourist_come_back"]))
+
+elif team_role == "Sales - General":
+    shop_data["avg_amt_ticket"] = st.sidebar.slider("Avg Ticket Amount", 20, 100, int(shop_data["avg_amt_ticket"]))
+    shop_data["avg_num_ticket_per_customer"] = st.sidebar.slider("Avg Tickets per Customer", 1.0, 3.0, float(shop_data["avg_num_ticket_per_customer"]))
 
 # Calculate Projected Sales
 shop_data["projected_sales"] = calculate_sales(shop_data)
@@ -71,20 +82,30 @@ kpi_comparison = kpi_comparison.rename(columns={
 })
 st.dataframe(kpi_comparison)
 
-# Create Interactive Plotly Bar Chart
+# Create Stacked Bar Chart for Sales Comparison
 sales_comparison_df = pd.DataFrame({
-    "Category": ["Previous Year", "YTD", "Budget", "Current", "Projected"],
+    "Category": ["Previous Year", "Budget", "YTD", "Current", "Projected"],
     "Sales": [
-        shop_data["prev_year_sales"].values[0], shop_data["ytd_sales"].values[0],
-        shop_data["budget_sales"].values[0], shop_data["real_sales"].values[0],
-        shop_data["projected_sales"].values[0]
-    ]
+        shop_data["prev_year_sales"].values[0], 
+        shop_data["budget_sales"].values[0], 
+        shop_data["ytd_sales"].values[0], 
+        shop_data["real_sales"].values[0] - shop_data["ytd_sales"].values[0],  # Stack on YTD
+        shop_data["projected_sales"].values[0] - shop_data["real_sales"].values[0],  # Stack on Current
+    ],
+    "Stack": ["Reference", "Reference", "Base", "Adjustment", "Adjustment"]
 })
 
-fig = px.bar(sales_comparison_df, x="Category", y="Sales", text="Sales", 
-             title=f"Sales Overview for Shop {shop_id}",
-             labels={"Sales": "Sales Value", "Category": "Sales Type"},
-             color="Category")
+fig = px.bar(
+    sales_comparison_df, 
+    x="Category", 
+    y="Sales", 
+    color="Stack",
+    text="Sales",
+    title=f"Projected vs. Real Sales for Shop {shop_id}",
+    labels={"Sales": "Sales Value", "Category": "Sales Type"},
+    color_discrete_map={"Reference": "darkblue", "Base": "lightblue", "Adjustment": "red"},
+)
 
 fig.update_traces(texttemplate='%{text:.2s}', textposition='outside')
+
 st.plotly_chart(fig)
