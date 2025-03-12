@@ -1,60 +1,85 @@
 import streamlit as st
 import pandas as pd
-import plotly.express as px
+import matplotlib.pyplot as plt
 
-# Sample data
+# Sample DataFrame (Replace with real data)
 macrotable_df = pd.DataFrame({
-    "shop_id": [1, 2, 3],  
+    "shop_id": [1, 2, 3],
     "total_traffic": [10000, 15000, 20000],
-    "locals_new": [500, 700, 900],
-    "prospect_generation": [0.05, 0.06, 0.07],  # Prospect/Traffic Ratio
-    "prospect_effectiveness": [0.3, 0.4, 0.35],  # Prospect/Last 4 Months DB
-    "tourist_new": [300, 500, 600],
+    "prev_year_total_traffic": [9500, 14000, 19000],
+    "ytd_total_traffic": [8000, 13000, 17000],
+    "locals_new_effectiveness": [0.05, 0.06, 0.07],
+    "prev_year_locals_new_effectiveness": [0.04, 0.05, 0.06],
+    "ytd_locals_new_effectiveness": [0.045, 0.055, 0.065],
+    "prospect_generation": [0.03, 0.035, 0.04],
+    "prospect_effectiveness": [0.4, 0.42, 0.45],
+    "local_come_back": [0.2, 0.22, 0.25],
+    "tourist_new_effectiveness": [0.08, 0.09, 0.1],
+    "tourist_come_back": [0.15, 0.18, 0.2],
     "avg_amt_ticket": [50, 55, 60],
     "avg_num_ticket_per_customer": [1.5, 1.8, 2.0],
+    "db_buyers_locals": [500, 700, 900],
+    "db_buyers_tourist": [300, 500, 600],
+    "prev_year_sales": [600000, 800000, 1000000],  # Previous Year Sales
+    "ytd_sales": [450000, 600000, 750000],  # YTD Sales
+    "budget_sales": [650000, 850000, 1100000],  # Budget Sales
 })
 
 # Function to calculate sales
 def calculate_sales(df):
     return (
-        (df["locals_new"] + df["tourist_new"]) * df["avg_amt_ticket"] * df["avg_num_ticket_per_customer"]
-    )
+        (df["total_traffic"] * df["locals_new_effectiveness"]) +
+        (df["total_traffic"] * df["prospect_generation"]) +
+        (df["db_buyers_locals"] * df["prospect_effectiveness"]) +
+        (df["local_come_back"] * df["db_buyers_locals"]) +
+        (df["total_traffic"] * df["tourist_new_effectiveness"]) +
+        (df["tourist_come_back"] * df["db_buyers_tourist"])
+    ) * df["avg_amt_ticket"] * df["avg_num_ticket_per_customer"]
 
 # Add Real Sales column
 macrotable_df["real_sales"] = calculate_sales(macrotable_df)
 
 # Sidebar: Select Shop ID
-st.sidebar.header("Select Shop & Adjust KPIs")
 shop_id = st.sidebar.selectbox("Select Shop ID", macrotable_df["shop_id"])
-
-# Filter selected shop
 shop_data = macrotable_df[macrotable_df["shop_id"] == shop_id].copy()
 
-# Sidebar: Adjust KPIs
-st.sidebar.subheader("Adjust KPIs for Projection")
+st.sidebar.markdown("### Adjust KPIs")
+
+# Sidebar: Adjust KPI Variables
 shop_data["total_traffic"] = st.sidebar.slider("Total Traffic", 5000, 30000, int(shop_data["total_traffic"]))
-shop_data["locals_new"] = st.sidebar.slider("New Local Customers", 100, 1500, int(shop_data["locals_new"]))
-shop_data["tourist_new"] = st.sidebar.slider("New Tourist Customers", 100, 1500, int(shop_data["tourist_new"]))
+shop_data["locals_new_effectiveness"] = st.sidebar.slider("Locals New Effectiveness", 0.01, 0.1, float(shop_data["locals_new_effectiveness"]))
+shop_data["prospect_generation"] = st.sidebar.slider("Prospect Generation", 0.01, 0.1, float(shop_data["prospect_generation"]))
+shop_data["prospect_effectiveness"] = st.sidebar.slider("Prospect Effectiveness", 0.1, 0.6, float(shop_data["prospect_effectiveness"]))
+shop_data["local_come_back"] = st.sidebar.slider("Local Comeback", 0.1, 0.4, float(shop_data["local_come_back"]))
+shop_data["tourist_new_effectiveness"] = st.sidebar.slider("Tourist New Effectiveness", 0.05, 0.15, float(shop_data["tourist_new_effectiveness"]))
+shop_data["tourist_come_back"] = st.sidebar.slider("Tourist Comeback", 0.1, 0.4, float(shop_data["tourist_come_back"]))
 shop_data["avg_amt_ticket"] = st.sidebar.slider("Avg Ticket Amount", 20, 100, int(shop_data["avg_amt_ticket"]))
 shop_data["avg_num_ticket_per_customer"] = st.sidebar.slider("Avg Tickets per Customer", 1.0, 3.0, float(shop_data["avg_num_ticket_per_customer"]))
 
 # Calculate Projected Sales
 shop_data["projected_sales"] = calculate_sales(shop_data)
 
-# Create Bar Chart Data
-sales_comparison = pd.DataFrame({
-    "Sales Type": ["Real Sales", "Projected Sales"],
-    "Sales Value": [macrotable_df[macrotable_df["shop_id"] == shop_id]["real_sales"].values[0], shop_data["projected_sales"].values[0]],
+# Display Previous Year, YTD, and Budget for Context
+st.markdown("## KPI Overview")
+kpi_comparison = shop_data[["prev_year_sales", "ytd_sales", "budget_sales", "real_sales", "projected_sales"]]
+kpi_comparison = kpi_comparison.rename(columns={
+    "prev_year_sales": "Previous Year Sales",
+    "ytd_sales": "YTD Sales",
+    "budget_sales": "Budget Sales",
+    "real_sales": "Current Sales",
+    "projected_sales": "Projected Sales",
 })
+st.dataframe(kpi_comparison)
 
-# Plot Bar Chart
-fig = px.bar(sales_comparison, x="Sales Type", y="Sales Value", text="Sales Value", color="Sales Type",
-             color_discrete_map={"Real Sales": "lightblue", "Projected Sales": "blue"})
+# Create Bar Chart Data
+fig, ax = plt.subplots(figsize=(6, 4))
+ax.bar(["Previous Year", "YTD", "Budget", "Current", "Projected"],
+       [shop_data["prev_year_sales"].values[0], shop_data["ytd_sales"].values[0],
+        shop_data["budget_sales"].values[0], shop_data["real_sales"].values[0],
+        shop_data["projected_sales"].values[0]],
+       color=['gray', 'lightblue', 'green', 'blue', 'red'])
 
-st.title("📊 Projected vs. Real Sales")
-st.write(f"**Shop ID: {shop_id}**")
-st.plotly_chart(fig, use_container_width=True)
+ax.set_ylabel("Sales Value")
+ax.set_title(f"Sales Overview for Shop {shop_id}")
 
-# Display Data
-st.subheader("KPI Data Overview")
-st.write(shop_data)
+st.pyplot(fig)
