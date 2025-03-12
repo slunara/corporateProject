@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-import matplotlib.pyplot as plt
+import plotly.express as px
 
 # Sample DataFrame (Replace with real data)
 macrotable_df = pd.DataFrame({
@@ -20,9 +20,9 @@ macrotable_df = pd.DataFrame({
     "avg_num_ticket_per_customer": [1.5, 1.8, 2.0],
     "db_buyers_locals": [500, 700, 900],
     "db_buyers_tourist": [300, 500, 600],
-    "prev_year_sales": [600000, 800000, 1000000],  # Previous Year Sales
-    "ytd_sales": [450000, 600000, 750000],  # YTD Sales
-    "budget_sales": [650000, 850000, 1100000],  # Budget Sales
+    "prev_year_sales": [600000, 800000, 1000000],  
+    "ytd_sales": [450000, 600000, 750000],  
+    "budget_sales": [650000, 850000, 1100000],  
 })
 
 # Function to calculate sales
@@ -71,15 +71,20 @@ kpi_comparison = kpi_comparison.rename(columns={
 })
 st.dataframe(kpi_comparison)
 
-# Create Bar Chart Data
-fig, ax = plt.subplots(figsize=(6, 4))
-ax.bar(["Previous Year", "YTD", "Budget", "Current", "Projected"],
-       [shop_data["prev_year_sales"].values[0], shop_data["ytd_sales"].values[0],
+# Create Interactive Plotly Bar Chart
+sales_comparison_df = pd.DataFrame({
+    "Category": ["Previous Year", "YTD", "Budget", "Current", "Projected"],
+    "Sales": [
+        shop_data["prev_year_sales"].values[0], shop_data["ytd_sales"].values[0],
         shop_data["budget_sales"].values[0], shop_data["real_sales"].values[0],
-        shop_data["projected_sales"].values[0]],
-       color=['gray', 'lightblue', 'green', 'blue', 'red'])
+        shop_data["projected_sales"].values[0]
+    ]
+})
 
-ax.set_ylabel("Sales Value")
-ax.set_title(f"Sales Overview for Shop {shop_id}")
+fig = px.bar(sales_comparison_df, x="Category", y="Sales", text="Sales", 
+             title=f"Sales Overview for Shop {shop_id}",
+             labels={"Sales": "Sales Value", "Category": "Sales Type"},
+             color="Category")
 
-st.pyplot(fig)
+fig.update_traces(texttemplate='%{text:.2s}', textposition='outside')
+st.plotly_chart(fig)
