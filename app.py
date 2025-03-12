@@ -39,7 +39,7 @@ shop_data = macrotable_df[macrotable_df["shop_id"] == shop_id].copy()
 
 st.sidebar.markdown("### What is your target category?")
 team_type = st.sidebar.radio(
-    "Select Team Type",
+    " ",
     ["Traffic", "Locals", "Tourist", "Avg Ticket"]
 )
 
