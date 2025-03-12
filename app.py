@@ -81,9 +81,19 @@ elif team_type == "Avg Ticket":
 # Calculate Projected Sales
 shop_data["projected_sales"] = calculate_sales(shop_data)
 
-# Display KPI Comparison
-st.markdown("## KPI Overview")
-kpi_comparison = shop_data[["prev_year_sales", "ytd_sales", "budget_sales", "real_sales", "projected_sales"]]
+
+# Ensure real_sales and projected_sales are computed
+shop_data["real_sales"] = calculate_sales(shop_data)
+shop_data["projected_sales"] = calculate_sales(shop_data)
+
+# Debugging: Print available columns
+st.write("Available Columns in shop_data:", shop_data.columns.tolist())
+
+# Handle missing columns
+columns_to_include = ["prev_year_sales", "ytd_sales", "budget_sales", "real_sales", "projected_sales"]
+kpi_comparison = shop_data[[col for col in columns_to_include if col in shop_data.columns]]
+
+# Rename for display
 kpi_comparison = kpi_comparison.rename(columns={
     "prev_year_sales": "Previous Year Sales",
     "ytd_sales": "YTD Sales",
@@ -91,7 +101,10 @@ kpi_comparison = kpi_comparison.rename(columns={
     "real_sales": "Current Sales",
     "projected_sales": "Projected Sales",
 })
+
 st.dataframe(kpi_comparison)
+
+
 
 # **Create Stacked Bar Chart for Sales Comparison**
 sales_comparison_df = pd.DataFrame({
@@ -142,3 +155,5 @@ fig2 = px.bar(
 
 fig2.update_traces(texttemplate='%{text:.2f}', textposition='outside')
 st.plotly_chart(fig2)
+
+
