@@ -27,8 +27,7 @@ macrotable_df = pd.DataFrame({
 def calculate_sales(df):
     return (
         (df["total_traffic"] * df["locals_new_effectiveness"]) +
-        (df["total_traffic"] * df["prospect_generation"] +
-        df["db_buyers_locals"]) * df["prospect_effectiveness"] +
+        (df["total_traffic"] * df["prospect_generation"] + df["db_buyers_locals"]) * df["prospect_effectiveness"] +
         (df["local_come_back"] * df["db_buyers_locals"]) +
         (df["total_traffic"] * df["tourist_new_effectiveness"]) +
         (df["tourist_come_back"] * df["db_buyers_tourist"])
@@ -82,17 +81,22 @@ elif team_type == "Avg Ticket":
     shop_data["avg_amt_ticket"] = st.sidebar.slider("Avg Ticket Amount", 20, 100, int(shop_data["avg_amt_ticket"]))
     shop_data["avg_num_ticket_per_customer"] = st.sidebar.slider("Avg Tickets per Customer", 1.0, 3.0, float(shop_data["avg_num_ticket_per_customer"]))
 
-# Calculate Projected Sales
+# Ensure real_sales and projected_sales are computed
+shop_data["real_sales"] = calculate_sales(shop_data)
 shop_data["projected_sales"] = calculate_sales(shop_data)
+
+# Handle missing columns
+columns_to_include = ["prev_year_sales", "ytd_sales", "budget_sales", "real_sales", "projected_sales"]
+kpi_comparison = shop_data[[col for col in columns_to_include if col in shop_data.columns]]
 
 # **Create Stacked Bar Chart for Sales Comparison**
 sales_comparison_df = pd.DataFrame({
     "Category": ["Previous Year", "Budget", "YTD+Current", "Projected"],
     "Sales": [
-        shop_data["prev_year_sales"].values[0],
-        shop_data["budget_sales"].values[0], 
-        shop_data["real_sales"].values[0] + shop_data["ytd_sales"].values[0],
-        shop_data["projected_sales"].values[0] + shop_data["ytd_sales"].values[0]
+        shop_data["prev_year_sales"].iloc[0],
+        shop_data["budget_sales"].iloc[0], 
+        shop_data["real_sales"].iloc[0] + shop_data["ytd_sales"].iloc[0],
+        shop_data["projected_sales"].iloc[0] + shop_data["ytd_sales"].iloc[0]
     ],
     "Type": ["Historical", "Goal", "Actual", "Forecast"]
 })
@@ -110,3 +114,10 @@ fig = px.bar(
 
 fig.update_traces(texttemplate='%{text:.2s}', textposition='outside')
 st.plotly_chart(fig)
+
+# **Ensure all necessary columns exist**
+st.write("Available Columns in shop_data:", shop_data.columns.tolist())
+
+# Display KPI Comparison
+st.markdown("## KPI Overview")
+st.dataframe(kpi_comparison)
