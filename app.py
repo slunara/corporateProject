@@ -89,8 +89,8 @@ sales_comparison_df = pd.DataFrame({
         shop_data["prev_year_sales"].values[0], 
         shop_data["budget_sales"].values[0], 
         shop_data["ytd_sales"].values[0], 
-        shop_data["real_sales"].values[0] - shop_data["ytd_sales"].values[0],  # Stack on YTD
-        shop_data["projected_sales"].values[0] - shop_data["real_sales"].values[0],  # Stack on Current
+        shop_data["real_sales"].values[0] + shop_data["ytd_sales"].values[0],  # Stack on YTD
+        shop_data["projected_sales"].values[0] + shop_data["real_sales"].values[0],  # Stack on Current
     ],
     "Stack": ["Reference", "Reference", "Base", "Adjustment", "Adjustment"]
 })
