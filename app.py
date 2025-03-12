@@ -27,12 +27,12 @@ macrotable_df = pd.DataFrame({
 def calculate_sales(df):
     return (
         (df["total_traffic"] * df["locals_new_effectiveness"]) +
-        (df["total_traffic"] * df["prospect_generation"]) +
-        (df["db_buyers_locals"] * df["prospect_effectiveness"]) +
+        (df["total_traffic"] * df["prospect_generation"] +
+        df["db_buyers_locals"]) * df["prospect_effectiveness"] +
         (df["local_come_back"] * df["db_buyers_locals"]) +
         (df["total_traffic"] * df["tourist_new_effectiveness"]) +
         (df["tourist_come_back"] * df["db_buyers_tourist"])
-    ) * df["avg_amt_ticket"] * df["avg_num_ticket_per_customer"]
+    ) * df["avg_amt_ticket"] * df["avg_num_ticket_per_customer"])
 
 # Sidebar: Select Shop ID
 shop_id = st.sidebar.selectbox("Select Shop ID", macrotable_df["shop_id"])
@@ -44,12 +44,17 @@ team_type = st.sidebar.radio(
     ["Traffic", "Locals", "Tourist", "Avg Ticket"]
 )
 
-# **Quarterly Seasonality Adjustment**
-st.sidebar.markdown("### Adjust Quarterly Traffic Distribution")
-q1_multiplier = st.sidebar.slider("Q1 (%)", 0.0, 1.0, 0.25)
-q2_multiplier = st.sidebar.slider("Q2 (%)", 0.0, 1.0, 0.25)
-q3_multiplier = st.sidebar.slider("Q3 (%)", 0.0, 1.0, 0.25)
-q4_multiplier = st.sidebar.slider("Q4 (%)", 0.0, 1.0, 0.25)
+
+# **Adjust KPIs Based on Selected Team Type**
+st.sidebar.markdown("### Adjust KPIs")
+if team_type == "Traffic":
+    shop_data["total_traffic"] = st.sidebar.slider("Total Traffic", 5000, 30000, int(shop_data["total_traffic"]))
+    # **Quarterly Seasonality Adjustment**
+    st.sidebar.markdown("### Adjust Quarterly Traffic Distribution")
+    q1_multiplier = st.sidebar.slider("Q1 (%)", 0.0, 1.0, 0.25)
+    q2_multiplier = st.sidebar.slider("Q2 (%)", 0.0, 1.0, 0.25)
+    q3_multiplier = st.sidebar.slider("Q3 (%)", 0.0, 1.0, 0.25)
+    q4_multiplier = 1-q1_multiplier-q2_multiplier-q3_multiplier
 
 # Ensure the sum is 100%
 total_multiplier = q1_multiplier + q2_multiplier + q3_multiplier + q4_multiplier
@@ -58,11 +63,6 @@ if total_multiplier != 1.0:
 
 # Adjust Traffic using Quarterly Multiplier
 shop_data["adjusted_traffic"] = shop_data["total_traffic"] * total_multiplier
-
-# **Adjust KPIs Based on Selected Team Type**
-st.sidebar.markdown("### Adjust KPIs")
-if team_type == "Traffic":
-    shop_data["total_traffic"] = st.sidebar.slider("Total Traffic", 5000, 30000, int(shop_data["total_traffic"]))
 
 elif team_type == "Locals":
     shop_data["locals_new_effectiveness"] = st.sidebar.slider("Locals New Effectiveness", 0.01, 0.1, float(shop_data["locals_new_effectiveness"]))
@@ -86,8 +86,6 @@ shop_data["projected_sales"] = calculate_sales(shop_data)
 shop_data["real_sales"] = calculate_sales(shop_data)
 shop_data["projected_sales"] = calculate_sales(shop_data)
 
-# Debugging: Print available columns
-st.write("Available Columns in shop_data:", shop_data.columns.tolist())
 
 # Handle missing columns
 columns_to_include = ["prev_year_sales", "ytd_sales", "budget_sales", "real_sales", "projected_sales"]
@@ -108,13 +106,13 @@ st.dataframe(kpi_comparison)
 
 # **Create Stacked Bar Chart for Sales Comparison**
 sales_comparison_df = pd.DataFrame({
-    "Category": ["Previous Year", "YTD", "Budget", "Current", "Projected"],
+    "Category": ["Previous Year", "Budget", "YTD+Current", "Projected"],
     "Sales": [
-        shop_data["prev_year_sales"].values[0], shop_data["ytd_sales"].values[0],
-        shop_data["budget_sales"].values[0], shop_data["real_sales"].values[0],
-        shop_data["projected_sales"].values[0]
+        shop_data["prev_year_sales"].values[0],
+        shop_data["budget_sales"].values[0], shop_data["real_sales"].values[0]+shop_data["ytd_sales"].values[0],
+        shop_data["projected_sales"].values[0]+shop_data["ytd_sales"].values[0]
     ],
-    "Type": ["Historical", "Historical", "Goal", "Actual", "Forecast"]
+    "Type": ["Historical", "Goal", "Actual", "Forecast"]
 })
 
 fig = px.bar(
