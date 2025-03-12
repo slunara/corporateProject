@@ -61,8 +61,8 @@ total_multiplier = q1_multiplier + q2_multiplier + q3_multiplier + q4_multiplier
 if total_multiplier != 1.0:
     st.sidebar.error("⚠️ The sum of Q1-Q4 must be exactly 100% (1.0)")
 
-# Adjust Traffic using Quarterly Multiplier
-shop_data["adjusted_traffic"] = shop_data["total_traffic"] * total_multiplier
+    # Adjust Traffic using Quarterly Multiplier
+    shop_data["adjusted_traffic"] = shop_data["total_traffic"] * total_multiplier
 
 elif team_type == "Locals":
     shop_data["locals_new_effectiveness"] = st.sidebar.slider("Locals New Effectiveness", 0.01, 0.1, float(shop_data["locals_new_effectiveness"]))
