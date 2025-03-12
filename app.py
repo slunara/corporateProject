@@ -1,54 +1,47 @@
 import streamlit as st
 import pandas as pd
+import plotly.express as px
 
-# Load or create initial data
+# Sample data
 macrotable_df = pd.DataFrame({
-    "shop_id": [1, 2, 3],  # Example shops
+    "shop_id": [1, 2, 3],  
     "total_traffic": [10000, 15000, 20000],
     "locals_new": [500, 700, 900],
     "prospect_generation": [0.05, 0.06, 0.07],  # Prospect/Traffic Ratio
     "prospect_effectiveness": [0.3, 0.4, 0.35],  # Prospect/Last 4 Months DB
-    "tourist_new": [300, 500, 800],
-    "avg_amt_ticket": [50, 55, 60],  # Avg ticket amount
-    "avg_num_ticket_per_customer": [1.2, 1.3, 1.1],  # Avg tickets per customer
-    "real_sales": [500000, 750000, 1000000]  # Example actual sales
+    "tourist_new": [300, 500, 600],
+    "avg_amt_ticket": [50, 55, 60],
+    "avg_num_ticket_per_customer": [1.5, 1.8, 2.0],
 })
 
-# Create a copy for modifications
-final_kpis_df = macrotable_df.copy()
-
-# Streamlit UI
-st.title("Sales KPI Optimization Tool")
-st.sidebar.header("Adjust KPIs to Reach the Sales Budget")
-
-# Create adjustable sliders for key KPIs
-for col in ["total_traffic", "locals_new", "tourist_new", "avg_amt_ticket", "avg_num_ticket_per_customer"]:
-    final_kpis_df[col] = st.sidebar.slider(
-        f"Adjust {col}",
-        min_value=int(macrotable_df[col].min() * 0.5),
-        max_value=int(macrotable_df[col].max() * 1.5),
-        value=int(macrotable_df[col].mean())
+# Function to calculate sales
+def calculate_sales(df):
+    return (
+        (df["locals_new"] + df["tourist_new"]) * df["avg_amt_ticket"] * df["avg_num_ticket_per_customer"]
     )
 
-# Sales Projection Calculation
-final_kpis_df["projected_sales"] = (
-    (final_kpis_df["locals_new"] + final_kpis_df["tourist_new"])
-    * final_kpis_df["avg_amt_ticket"] * final_kpis_df["avg_num_ticket_per_customer"]
-)
+# Add Real Sales column
+macrotable_df["real_sales"] = calculate_sales(macrotable_df)
 
-# Display Initial KPIs, Adjusted KPIs, and Projected Sales
-st.subheader("Initial vs. Adjusted KPIs")
-st.write("Compare baseline KPIs with adjustments.")
-st.dataframe(final_kpis_df)
+# Sidebar: Select Shop ID
+st.sidebar.header("Select Shop & Adjust KPIs")
+shop_id = st.sidebar.selectbox("Select Shop ID", macrotable_df["shop_id"])
 
-# Show projected sales vs. real sales
-st.subheader("Projected vs. Real Sales")
-st.write("See how KPI adjustments impact sales.")
-st.bar_chart(final_kpis_df[["real_sales", "projected_sales"]].set_index(final_kpis_df["shop_id"]))
+# Filter selected shop
+shop_data = macrotable_df[macrotable_df["shop_id"] == shop_id].copy()
 
-# KPI Effectiveness Table
-st.subheader("Effectiveness Metrics")
-final_kpis_df["prospect_generation_effectiveness"] = final_kpis_df["prospect_generation"] * final_kpis_df["prospect_effectiveness"]
-st.dataframe(final_kpis_df[["shop_id", "prospect_generation_effectiveness"]])
+# Sidebar: Adjust KPIs
+st.sidebar.subheader("Adjust KPIs for Projection")
+shop_data["total_traffic"] = st.sidebar.slider("Total Traffic", 5000, 30000, int(shop_data["total_traffic"]))
+shop_data["locals_new"] = st.sidebar.slider("New Local Customers", 100, 1500, int(shop_data["locals_new"]))
+shop_data["tourist_new"] = st.sidebar.slider("New Tourist Customers", 100, 1500, int(shop_data["tourist_new"]))
+shop_data["avg_amt_ticket"] = st.sidebar.slider("Avg Ticket Amount", 20, 100, int(shop_data["avg_amt_ticket"]))
+shop_data["avg_num_ticket_per_customer"] = st.sidebar.slider("Avg Tickets per Customer", 1.0, 3.0, float(shop_data["avg_num_ticket_per_customer"]))
 
-st.success("Adjust KPIs in the sidebar and track changes in real-time!")
+# Calculate Projected Sales
+shop_data["projected_sales"] = calculate_sales(shop_data)
+
+# Create Bar Chart Data
+sales_comparison = pd.DataFrame({
+    "Sales Type": ["Real Sales", "Projected Sales"],
+    "Sales Value": [macrotable_df[macrotable_df["shop_id
