@@ -84,14 +84,14 @@ st.dataframe(kpi_comparison)
 
 # Create Stacked Bar Chart for Sales Comparison
 sales_comparison_df = pd.DataFrame({
-    "Category": ["Previous Year", "Budget", "YTD", "Current", "Projected"],
+    "Category": ["Previous Year", "Budget", "YTD", "YTD + Current", "YTD + Projected"],
     "Sales": [
         shop_data["prev_year_sales"].values[0], 
         shop_data["budget_sales"].values[0], 
         shop_data["real_sales"].values[0] + shop_data["ytd_sales"].values[0],  # Stack on YTD
         shop_data["projected_sales"].values[0] + shop_data["ytd_sales"].values[0],  # Stack on Current
     ],
-    "Stack": ["prev_year_sales", "budget_sales", "YTD+real_sales", "YTD+projected_sales"]
+    "Stack": ["Reference", "Reference", "YTD+real_sales", "YTD+projected_sales"]
 })
 
 fig = px.bar(
