@@ -2,6 +2,10 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 
+# Add the title
+st.title("KPIs Optimizer")
+st.markdown("### Adjust different KPIs to optimize your sales projections.")
+
 # Sample DataFrame (Replace with real data)
 macrotable_df = pd.DataFrame({
     "shop_id": [1, 2, 3],
