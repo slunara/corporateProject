@@ -114,4 +114,4 @@ total_revenue=compute_revenue_forecast(local_customer_forecast_df,tourist_custom
 sales_budget = st.number_input("Sales budget", 0, 10000000, 1000000)
 
 st.subheader("Revenue Forecast")
-st.dataframe(total_revenue_df)
+st.dataframe(total_revenue)
