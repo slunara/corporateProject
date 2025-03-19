@@ -132,7 +132,8 @@ variables = {
 
 # Define baseline total revenue
 baseline_total_revenue = total_revenue['revenue_total'].sum()
-st.write(baseline_total_revenue)
+
+st.write("Baseline Total Revenue:", baseline_total_revenue)
 
 # Store sensitivity results
 sensitivity_results = {}
