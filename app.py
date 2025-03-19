@@ -59,6 +59,21 @@ def compute_revenue_forecast(local_customer_forecast_df, tourist_customer_foreca
     
     total_revenue_df['revenue_total'] = total_revenue_df['revenue_local_total']+total_revenue_df['revenue_tourist_total']
     return total_revenue_df 
+
+def update_variables(variables):
+    updated_variables = {}
+    st.subheader("Update Variables")
+    for key, value in variables.items():
+        if isinstance(value, np.ndarray):
+            st.write(f"{key}: {value}")
+            percentage_change = st.slider(f"% Change for {key}", 0, 20, 0)
+            updated_variables[key] = value * (1 + percentage_change / 100)
+        else:
+            st.write(f"{key}: {value}")
+            percentage_change = st.slider(f"% Change for {key}", 0, 20, 0)
+            updated_variables[key] = value * (1 + percentage_change / 100)
+    return updated_variables
+  
     
 # Streamlit UI
 st.title("Sales Forecast and Budget Comparison")
@@ -185,5 +200,18 @@ sensitivity_df = pd.DataFrame.from_dict(sensitivity_results, orient='index', col
 sensitivity_df = sensitivity_df.sort_values(by="% Impact on Total Revenue", ascending=False)
 
 st.dataframe(sensitivity_df)
+
+# Streamlit UI
+st.title("Simulation")
+
+n_months = st.number_input("Number of months to forecast", min_value=1, max_value=12, value=6)
+traffic = np.array(st.text_area("Enter traffic per month (comma-separated)", "1000, 1200, 1100, 1300, 1250, 1400").split(","), dtype=int)
+prob_prospect_generation = st.slider("Probability of prospect generation", 0.0, 1.0, 0.3)
+prob_prospect_conversion = np.array([0.3, 0.2, 0.1, 0, 0, 0])
+prob_direct_customer_conversion = st.slider("Direct customer conversion rate", 0.0, 1.0, 0.1)
+retention_prob = np.array([1.0, 0.7, 0.5, 0.3, 0.2, 0.1])
+prob_existing_clients_conversion = st.slider("Probability of existing clients repurchasing", 0.0, 1.0, 0.03)
+existing_customers = st.number_input("Number of existing customers", 0, 100000, 5000)
+sales_budget = st.number_input("Sales budget", 0, 10000000, 1000000)
 
 
