@@ -47,29 +47,16 @@ st.title("Sales Forecast and Budget Comparison")
 
 n_months = st.number_input("Number of months to forecast", min_value=1, max_value=12, value=6)
 traffic = np.array(st.text_area("Enter traffic per month (comma-separated)", "1000, 1200, 1100, 1300, 1250, 1400").split(","), dtype=int)
-
-local_customer_forecast_df = compute_customer_forecast(n_months, traffic, **variables, existing_customers=existing_local_customers)
-tourist_customer_forecast_df = compute_customer_forecast(n_months, traffic, **variables, existing_customers=existing_tourist_customers)
-avg_ticket_df = pd.DataFrame({
-    "local_avg_ticket_new_from_prospects": [50],
-    "local_avg_ticket_new_direct": [60],
-    "local_avg_ticket_existing": [40],
-    "tourist_avg_ticket_new_from_prospects": [0],
-    "tourist_avg_ticket_new_direct": [80],
-    "tourist_avg_ticket_existing": [45]
-})
-
-total_revenue_df = compute_revenue_forecast(local_customer_forecast_df, tourist_customer_forecast_df, avg_ticket_df)
-st.subheader("Baseline Revenue Forecast")
-st.write(f"Baseline Total Revenue: {total_revenue_df['revenue_total'].sum()}")
+existing_local_customers = 5000
+existing_tourist_customers = 1000
 
 # Sensitivity Analysis
 sensitivity_results = {}
 for var in variables.keys():
     modified_variables = {k: v.copy() if isinstance(v, np.ndarray) else v for k, v in variables.items()}
     modified_variables[var] = variables[var] * 1.01
-    local_forecast = compute_customer_forecast(n_months, traffic, **modified_variables, existing_local_customers)
-    tourist_forecast = compute_customer_forecast(n_months, traffic, **modified_variables, existing_tourist_customers)
+    local_forecast = compute_customer_forecast(n_months, traffic, **modified_variables, existing_customers=existing_local_customers)
+    tourist_forecast = compute_customer_forecast(n_months, traffic, **modified_variables, existing_customers=existing_tourist_customers)
     new_revenue_df = compute_revenue_forecast(local_forecast, tourist_forecast, avg_ticket_df)
     new_total_revenue = new_revenue_df['revenue_total'].sum()
     sensitivity_results[var] = ((new_total_revenue - total_revenue_df['revenue_total'].sum()) / total_revenue_df['revenue_total'].sum()) * 100
@@ -81,8 +68,8 @@ st.dataframe(sensitivity_df)
 if st.button("Simulate with Updated Variables"):
     updated_variables = {k: st.slider(f"% Change for {k}", 0, 20, 0, key=f"{k}_slider") / 100 for k in variables.keys()}
     updated_variables = {k: variables[k] * (1 + v) for k, v in updated_variables.items()}
-    local_forecast = compute_customer_forecast(n_months, traffic, **updated_variables, existing_local_customers)
-    tourist_forecast = compute_customer_forecast(n_months, traffic, **updated_variables, existing_tourist_customers)
+    local_forecast = compute_customer_forecast(n_months, traffic, **updated_variables, existing_customers=existing_local_customers)
+    tourist_forecast = compute_customer_forecast(n_months, traffic, **updated_variables, existing_customers=existing_tourist_customers)
     new_revenue_df = compute_revenue_forecast(local_forecast, tourist_forecast, avg_ticket_df)
     st.subheader("Updated Revenue Forecast")
     st.dataframe(new_revenue_df)
