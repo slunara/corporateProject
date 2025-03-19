@@ -32,6 +32,8 @@ def compute_customer_forecast(n_months, traffic, prob_prospect_generation,
 
     total_existing_customers = existing_customers_vector + retained_customers_from_prospects + retained_customers_direct
 
+                      
+
     forecast_df = pd.DataFrame({
     "prospects": prospects,
     "new_customers_from_prospects": new_customers_from_prospects,  # Sum across rows
@@ -115,3 +117,71 @@ sales_budget = st.number_input("Sales budget", 0, 10000000, 1000000)
 
 st.subheader("Revenue Forecast")
 st.dataframe(total_revenue)
+
+variables = {
+    "local_prob_prospect_generation": prob_prospect_generation,
+    "local_prob_prospect_conversion": prob_prospect_conversion,
+    "local_prob_direct_customer_conversion": local_prob_direct_customer_conversion,
+    "local_prob_existing_clients_conversion": local_prob_existing_clients_conversion,
+    "local_retention_prob":local_retention_prob, 
+
+    "tourist_prob_direct_customer_conversion":tourist_prob_direct_customer_conversion,
+    "tourist_prob_existing_clients_conversion": tourist_prob_existing_clients_conversion,
+    "tourist_retention_prob":tourist_retention_prob
+}
+
+# Define baseline total revenue
+baseline_total_revenue = total_revenue['revenue_total'].sum()
+st.dataframe(baseline_total_revenue)
+# Store sensitivity results
+sensitivity_results = {}
+
+# Loop through each variable to test its sensitivity
+for var in variables.keys():
+    # Create a copy of the original variables (fresh start each time)
+    
+    modified_variables = {k: v.copy() if isinstance(v, np.ndarray) else v for k, v in variables.items()}
+
+
+    # Apply a 1% increase ONLY to the current variable
+    modified_variables[var] = variables[var] * 1.01  # Increase by 1%
+
+
+    # Compute forecasts using modified variables
+    local_customer_forecast_df = compute_customer_forecast(
+        n_months, traffic, 
+        modified_variables["local_prob_prospect_generation"], 
+        modified_variables["local_prob_prospect_conversion"], 
+        modified_variables["local_prob_direct_customer_conversion"], 
+        modified_variables["local_retention_prob"], 
+        modified_variables["local_prob_existing_clients_conversion"],
+        existing_local_customers
+    )
+
+    tourist_customer_forecast_df = compute_customer_forecast(
+        n_months, traffic, 
+        prob_prospect_generation, 
+        prob_prospect_conversion, 
+        modified_variables["tourist_prob_direct_customer_conversion"], 
+        modified_variables["tourist_retention_prob"], 
+        modified_variables["tourist_prob_existing_clients_conversion"],
+        existing_tourist_customers
+    )
+
+    # Compute new total revenue
+    new_total_revenue_df = compute_revenue_forecast(local_customer_forecast_df, tourist_customer_forecast_df, avg_ticket_df)
+
+    # Extract sum of revenue
+    new_total_revenue = new_total_revenue_df['revenue_total'].sum() 
+
+
+    # Calculate percentage impact
+    sensitivity_results[var] = ((new_total_revenue - baseline_total_revenue) / baseline_total_revenue) * 100
+
+# Convert results to DataFrame and display
+sensitivity_df = pd.DataFrame.from_dict(sensitivity_results, orient='index', columns=["% Impact on Total Revenue"])
+sensitivity_df = sensitivity_df.sort_values(by="% Impact on Total Revenue", ascending=False)
+
+st.dataframe(sensitivity_df)
+
+
