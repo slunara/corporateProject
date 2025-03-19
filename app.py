@@ -48,8 +48,8 @@ st.title("Sales Forecast and Budget Comparison")
 n_months = st.number_input("Number of months to forecast", min_value=1, max_value=12, value=6)
 traffic = np.array(st.text_area("Enter traffic per month (comma-separated)", "1000, 1200, 1100, 1300, 1250, 1400").split(","), dtype=int)
 
-local_customer_forecast_df = compute_customer_forecast(n_months, traffic, **variables, existing_local_customers)
-tourist_customer_forecast_df = compute_customer_forecast(n_months, traffic, **variables, existing_tourist_customers)
+local_customer_forecast_df = compute_customer_forecast(n_months, traffic, **variables, existing_customers=existing_local_customers)
+tourist_customer_forecast_df = compute_customer_forecast(n_months, traffic, **variables, existing_customers=existing_tourist_customers)
 avg_ticket_df = pd.DataFrame({
     "local_avg_ticket_new_from_prospects": [50],
     "local_avg_ticket_new_direct": [60],
