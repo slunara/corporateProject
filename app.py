@@ -50,14 +50,23 @@ traffic = np.array(st.text_area("Enter traffic per month (comma-separated)", "10
 existing_local_customers = 5000
 existing_tourist_customers = 1000
 
+variables = {
+    "prob_prospect_generation": 0.3,
+    "prob_prospect_conversion": np.array([0.3, 0.2, 0.1, 0, 0, 0]),
+    "local_prob_direct_customer_conversion": 0.1,
+    "tourist_prob_direct_customer_conversion": 0.05,
+    "local_retention_prob": np.array([1.0, 0.7, 0.5, 0.3, 0.2, 0.1]),
+    "tourist_retention_prob": np.array([0, 0.7, 0.5, 0.3, 0.2, 0.1]),
+    "local_prob_existing_clients_conversion": 0.03,
+    "tourist_prob_existing_clients_conversion": 0.01
+}
+
 sensitivity_results = {}
 for var in variables.keys():
-    modified_variables = {k: v.copy() if isinstance(v, np.ndarray) else v for k, v in variables.items()}
-    modified_variables[var] = variables[var] * 1.01
-    modified_variables["existing_customers"] = existing_local_customers
-    local_forecast = compute_customer_forecast(n_months, traffic, **modified_variables)
-    modified_variables["existing_customers"] = existing_tourist_customers
-    tourist_forecast = compute_customer_forecast(n_months, traffic, **modified_variables)
+    modified_variables = variables.copy()
+    modified_variables[var] *= 1.01
+    local_forecast = compute_customer_forecast(n_months, traffic, **modified_variables, existing_customers=existing_local_customers)
+    tourist_forecast = compute_customer_forecast(n_months, traffic, **modified_variables, existing_customers=existing_tourist_customers)
     new_revenue_df = compute_revenue_forecast(local_forecast, tourist_forecast, avg_ticket_df)
     new_total_revenue = new_revenue_df['revenue_total'].sum()
     sensitivity_results[var] = ((new_total_revenue - new_revenue_df['revenue_total'].sum()) / new_revenue_df['revenue_total'].sum()) * 100
@@ -67,12 +76,12 @@ st.subheader("Sensitivity Analysis")
 st.dataframe(sensitivity_df)
 
 if st.button("Simulate with Updated Variables"):
-    updated_variables = {k: st.slider(f"% Change for {k}", 0, 20, 0, key=f"{k}_slider") / 100 for k in variables.keys()}
-    updated_variables = {k: variables[k] * (1 + v) for k, v in updated_variables.items()}
-    updated_variables["existing_customers"] = existing_local_customers
-    local_forecast = compute_customer_forecast(n_months, traffic, **updated_variables)
-    updated_variables["existing_customers"] = existing_tourist_customers
-    tourist_forecast = compute_customer_forecast(n_months, traffic, **updated_variables)
+    updated_variables = variables.copy()
+    for k in variables.keys():
+        percentage_change = st.slider(f"% Change for {k}", 0, 20, 0, key=f"{k}_slider") / 100
+        updated_variables[k] *= (1 + percentage_change)
+    local_forecast = compute_customer_forecast(n_months, traffic, **updated_variables, existing_customers=existing_local_customers)
+    tourist_forecast = compute_customer_forecast(n_months, traffic, **updated_variables, existing_customers=existing_tourist_customers)
     new_revenue_df = compute_revenue_forecast(local_forecast, tourist_forecast, avg_ticket_df)
     st.subheader("Updated Revenue Forecast")
     st.dataframe(new_revenue_df)
