@@ -383,7 +383,7 @@ else:  # KPI Optimization
     optimized_tourist_comeback = optimized_tourist_prob_existing_clients_conversion
 
     # Add KPI adjustment controls in sidebar
-    st.sidebar.subheader("KPI Adjustments")
+    st.sidebar.subheader("Probabilities Adjustments")
 
     # Create sliders for KPI adjustments with optimized values as defaults
     prob_prospect_generation = st.sidebar.slider(
@@ -563,17 +563,19 @@ else:  # KPI Optimization
 
     st.plotly_chart(fig, use_container_width=True)
 
+
+
     # Initialize parameters for sensitivity analysis
     n_months = 12
     traffic = np.array([1000, 1200, 1100, 1300, 1250, 1400, 1300, 1250, 1400, 1300, 1250, 1400])
-    prob_prospect_generation = 0.30
-    prob_prospect_conversion = np.array([0.3, 0.2, 0.1] + [0] * 9)
-    local_prob_direct_customer_conversion = 0.1
-    tourist_prob_direct_customer_conversion = 0.05
-    local_retention_prob = np.array([0.2, 0.1, 0.06, 0.05, 0.04, 0.03] + [0.03] * 6)
-    tourist_retention_prob = np.array([0.12, 0.6, 0.5, 0.3, 0.02, 0.01] + [0.01] * 6)
-    local_prob_existing_clients_conversion = 0.03
-    tourist_prob_existing_clients_conversion = 0.01
+    prob_prospect_generation = prob_prospect_generation
+    prob_prospect_conversion = local_prob_prospect_conversion
+    local_prob_direct_customer_conversion = local_prob_direct_customer_conversion
+    tourist_prob_direct_customer_conversion = tourist_prob_direct_customer_conversion
+    local_retention_prob = local_retention_prob_updated
+    tourist_retention_prob = tourist_retention_prob_value
+    local_prob_existing_clients_conversion = local_prob_existing_clients_conversion
+    tourist_prob_existing_clients_conversion = tourist_prob_existing_clients_conversion
     existing_local_customers = 5000
     existing_tourist_customers = 1000
 
@@ -619,7 +621,7 @@ else:  # KPI Optimization
     st.dataframe(sensitivity_df.style.format({"% Impact on Total Revenue": "{:.2f}%", "Required % Change": "{:.2f}%"}))
 
     # Display final KPI values
-    st.subheader("Optimal KPI Values")
+    st.subheader("KPI Values")
 
     # Calculate KPIs using compute_kpi function
     final_kpis = compute_kpi(
