@@ -608,7 +608,7 @@ else:  # Recommendation System
 
     st.write(f"🔹 gap: €{gap:,.2f}")
 
-    if gap > 1:
+    if gap < 0:
         st.warning("⚠️ **Alert:** Budget Target will not be reached with current settings!", icon="⚠️")
     
     # Calculate required percentage changes
