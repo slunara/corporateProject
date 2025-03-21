@@ -606,10 +606,9 @@ else:  # Recommendation System
         baseline_local_forecast, baseline_tourist_forecast, avg_ticket_df
     )['revenue_total'].sum()
 
-    st.write(f"🔹 Budget Target: €{budget_target:,.2f}")
-    st.write(f"🔹 Baseline Total Revenue: €{baseline_total_revenue:,.2f}")
+    st.write(f"🔹 gap: €{gap:,.2f}")
 
-    if gap > 0:
+    if gap > 1:
         st.warning("⚠️ **Alert:** Budget Target will not be reached with current settings!", icon="⚠️")
     
     # Calculate required percentage changes
