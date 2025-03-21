@@ -609,7 +609,7 @@ else:  # Recommendation System
     st.write(f"🔹 Budget Target: €{budget_target:,.2f}")
     st.write(f"🔹 Baseline Total Revenue: €{baseline_total_revenue:,.2f}")
 
-    if budget_target < baseline_total_revenue:
+    if gap > 0:
         st.warning("⚠️ **Alert:** Budget Target will not be reached with current settings!", icon="⚠️")
     
     # Calculate required percentage changes
