@@ -387,7 +387,7 @@ else:  # Recommendation System
 
     # Create sliders for KPI adjustments with optimized values as defaults
     prob_prospect_generation = st.sidebar.slider(
-        "Prospect Generation Probability",
+        "Prospect Generation Rate",
         min_value=0.0,
         max_value=1.0,
         value=float(optimized_prospect_gen),
@@ -397,7 +397,7 @@ else:  # Recommendation System
 
     local_prob_prospect_conversion_value = prob_prospect_conversion[0]
     local_prob_prospect_conversion_slider = st.sidebar.slider(
-        "Local Prospect Conversion Probability",
+        "Local Prospect Conversion Rate",
         min_value=0.0,
         max_value=1.0,
         value=float(local_prob_prospect_conversion_value),
@@ -409,7 +409,7 @@ else:  # Recommendation System
     local_prob_prospect_conversion[0] = local_prob_prospect_conversion_slider
 
     local_prob_direct_customer_conversion = st.sidebar.slider(
-        "Local New Customer Conversion Probability",
+        "Local New Customer Conversion Rate",
         min_value=0.0,
         max_value=1.0,
         value=float(optimized_local_effectiveness),
@@ -419,7 +419,7 @@ else:  # Recommendation System
 
     local_retention_prob_value = local_retention_prob[0]
     local_retention_prob_slider = st.sidebar.slider(
-        "Local Retention Probability",
+        "Local Retention Rate",
         min_value=0.0,
         max_value=1.0,
         value=float(local_retention_prob_value),
@@ -431,7 +431,7 @@ else:  # Recommendation System
     local_retention_prob_updated[0] = local_retention_prob_slider
 
     local_prob_existing_clients_conversion = st.sidebar.slider(
-        "Local Existing Clients Conversion Probability",
+        "Local Existing Clients Conversion Rate",
         min_value=0.0,
         max_value=1.0,
         value=float(optimized_local_comeback),
@@ -440,7 +440,7 @@ else:  # Recommendation System
     )
 
     tourist_prob_direct_customer_conversion = st.sidebar.slider(
-        "Tourist New Conversion Probability",
+        "Tourist New Conversion Rate",
         min_value=0.0,
         max_value=1.0,
         value=float(optimized_tourist_effectiveness),
@@ -449,7 +449,7 @@ else:  # Recommendation System
     )
 
     tourist_prob_existing_clients_conversion = st.sidebar.slider(
-        "Tourist Existing Clients Conversion Probability",
+        "Tourist Existing Clients Conversion Rate",
         min_value=0.0,
         max_value=1.0,
         value=float(optimized_tourist_comeback),
@@ -459,7 +459,7 @@ else:  # Recommendation System
 
     tourist_retention_prob_value = tourist_retention_prob[0]
     tourist_retention_prob_slider = st.sidebar.slider(
-        "Tourist Retention Probability",
+        "Tourist Retention Rate",
         min_value=0.0,
         max_value=1.0,
         value=float(tourist_retention_prob_value),
