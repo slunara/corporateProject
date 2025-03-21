@@ -573,7 +573,7 @@ else:  # KPI Optimization
     local_prob_direct_customer_conversion = local_prob_direct_customer_conversion
     tourist_prob_direct_customer_conversion = tourist_prob_direct_customer_conversion
     local_retention_prob = local_retention_prob_updated
-    tourist_retention_prob = tourist_retention_prob_value
+    tourist_retention_prob = tourist_retention_prob_updated
     local_prob_existing_clients_conversion = local_prob_existing_clients_conversion
     tourist_prob_existing_clients_conversion = tourist_prob_existing_clients_conversion
     existing_local_customers = 5000
