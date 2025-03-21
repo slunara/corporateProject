@@ -605,6 +605,9 @@ else:  # Recommendation System
     baseline_total_revenue = compute_revenue_forecast(
         baseline_local_forecast, baseline_tourist_forecast, avg_ticket_df
     )['revenue_total'].sum()
+
+    if budget_target < baseline_total_revenue:
+        st.warning("⚠️ **Alert:** Budget Target will not be reached with current settings!", icon="⚠️")
     
     # Calculate required percentage changes
     growth_required = ((budget_target - baseline_total_revenue) / baseline_total_revenue) * 100
@@ -612,8 +615,7 @@ else:  # Recommendation System
     required_changes = growth_required / sensitivity_df['Impact %']
     sensitivity_df["Required % Change"] = required_changes
 
-    if budget_target < baseline_total_revenue:
-        st.warning("⚠️ **Alert:** Budget Target will not be reached with current settings!", icon="⚠️")
+    
 
     
     # Rename the Impact % column for consistency
