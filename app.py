@@ -228,7 +228,7 @@ selected_month = st.sidebar.selectbox(
 )
 analysis_type = st.sidebar.radio(
     "Select Analysis Type",
-    ["KPI Month 0", "KPI Optimization"]
+    ["Forecast Month 0", "Recommendation System"]
 )
 
 # Get data for selected shop and month
