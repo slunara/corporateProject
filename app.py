@@ -238,8 +238,8 @@ shop_data = st.session_state.macrotable_df[
 ].copy()
 
 # Main content area
-if  analysis_type == "KPI Month 0":
-    st.header("KPI Month 0")
+if  analysis_type == "Forecast Month 0":
+    st.header("Forecast Month 0")
     # Calculate revenue forecast for all months
     n_months = 12
     monthly_data = st.session_state.macrotable_df[
@@ -319,8 +319,8 @@ if  analysis_type == "KPI Month 0":
     )
     st.plotly_chart(fig_monthly, use_container_width=True)
 
-else:  # KPI Optimization
-    st.header("KPI Optimization")
+else:  # Recommendation System
+    st.header("Recommendation System")
 
     # Get initial values from the data
     initial_prospect_gen = shop_data["prospect_generation"].values[0]
