@@ -611,6 +611,10 @@ else:  # Recommendation System
     sensitivity_df = sensitivity_df.sort_values(by='Impact %', ascending=False)
     required_changes = growth_required / sensitivity_df['Impact %']
     sensitivity_df["Required % Change"] = required_changes
+
+    if budget_target < baseline_total_revenue:
+        st.warning("⚠️ **Alert:** Budget Target will not be reached with current settings!", icon="⚠️")
+
     
     # Rename the Impact % column for consistency
     sensitivity_df = sensitivity_df.rename(columns={'Impact %': '% Impact on Total Revenue'})
